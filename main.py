@@ -11,72 +11,88 @@ from emojies import bad
 def cls():
     os.system('clear')
 
+class Game:
+    def __init__(self, min_x=0, min_y=0, max_x=12, max_y=12):
+        self.min_x = min_x
+        self.min_y = min_y
+        self.max_x = max_x
+        self.max_y = max_y
 
-def generate_number(min_n=0, max_n=11):
-    return random.randint(min_n, max_n)
+        self.all_answers = {'good': '', 'bad': ''}
 
+    @staticmethod
+    def generate_number(min_n=0, max_n=11):
+        return random.randint(min_n, max_n)
 
-def generate_task():
-    sign = random.choice('+-')
-    x = generate_number()
-    y = generate_number()
-    if sign == '-':
-        while x < y:
-            x = generate_number()
-    return {'x': x, 'y': y, 'sign': sign}
+    def generate_task(self):
+        sign = random.choice('+-')
+        x = self.generate_number(min_n=self.min_x, max_n=self.max_x)
+        y = self.generate_number(min_n=self.min_y, max_n=self.max_y)
+        if sign == '-':
+            while x < y:
+                x = self.generate_number()
+        return {'x': x, 'y': y, 'sign': sign}
 
+    def give_task(self, equation):
+        answer = input("\n {} {} {} = ".format(equation['x'], equation['sign'], equation['y']))
+        return answer
 
-def give_task(equation):
-    answer = input("\n {} {} {} = ".format(equation['x'], equation['sign'], equation['y']))
-    return answer
+    def check_answer(self, equation, answer):
+        if equation['sign'] == '-':
+            correct_answer = equation['x'] - equation['y']
+        elif equation['sign'] == '+':
+            correct_answer = equation['x'] + equation['y']
+        else:
+            print('Impossible!!!')
+            correct_answer = None
+        if correct_answer == int(answer):
+            return True
+        else:
+            return False
 
+    def pretty_print_results(self, result):
+        bad_sounds = ['sounds/bad_1.wav', 'sounds/bad_2.wav', 'sounds/bad_3.wav', 'sounds/bad_4.wav']
 
-def check_answer(equation, answer):
-    if equation['sign'] == '-':
-        correct_answer = equation['x'] - equation['y']
-    elif equation['sign'] == '+':
-        correct_answer = equation['x'] + equation['y']
-    else:
-        print('Impossible!!!')
-        correct_answer = None
-    if correct_answer == int(answer):
-        return True
-    else:
-        return False
+        good_e = random.choice(good)
+        bad_e = random.choice(bad)
+        if result:
+            self.all_answers['good'] += good_e + ' '
+            print(emoji.emojize('\n  {}'.format(self.all_answers['good']), use_aliases=True))
+            playsound('sounds/good_1.wav')
+        else:
+            self.all_answers['bad'] += bad_e + ' '
+            print(emoji.emojize('\n  {}'.format(self.all_answers['bad']), use_aliases=True))
+            playsound(random.choice(bad_sounds))
 
+    def pretty_print_gathered_bages(self):
+        print(emoji.emojize(':small_orange_diamond:'*30, use_aliases=True))
+        print(emoji.emojize('\n :white_check_mark: ===> {}'.format(self.all_answers['good']), use_aliases=True))
+        print(emoji.emojize('\n :red_circle: ===> {}'.format(self.all_answers['bad']), use_aliases=True))
+        print('\n\n\n\n\n')
 
-def pretty_print_results(result):
-    bad_sounds = ['sounds/bad_1.wav', 'sounds/bad_2.wav', 'sounds/bad_3.wav', 'sounds/bad_4.wav']
+    def play_all(self):
+        equation = self.generate_task()
+        answer = self.give_task(equation)
+        result = self.check_answer(equation, answer)
+        self.pretty_print_results(result)
 
-    good_e = random.choice(good)
-    bad_e = random.choice(bad)
-    if result:
-        print(emoji.emojize('\n  {}'.format(good_e), use_aliases=True))
-        playsound('sounds/good_1.wav')
-        return good_e
-    else:
-        print(emoji.emojize('\n  {}'.format(bad_e), use_aliases=True))
-        playsound(random.choice(bad_sounds))
-        return bad_e
+        while not result:
+            answer = self.give_task(equation)
+            result = self.check_answer(equation, answer)
+            self.pretty_print_results(result)
 
+    def play_loop(self, turnes):
 
-def play_all():
-
-    equation = generate_task()
-    answer = give_task(equation)
-    result = check_answer(equation, answer)
-    pretty_print_results(result)
-
-    while not result:
-        answer = give_task(equation)
-        result = check_answer(equation, answer)
-        pretty_print_results(result)
+        cls()
+        for x in range(turnes):
+            self.play_all()
+        cls()
+        self.pretty_print_gathered_bages()
 
 
 def main():
-    cls()
-    for x in range(20):
-        play_all()
+    game = Game()
+    game.play_loop(3)
 
 
 if __name__ == '__main__':
